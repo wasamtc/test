@@ -1,42 +1,44 @@
-#include "Socket.h"
-#include "Socket.cpp"
-#include "InetAddress.h"
-#include "InetAddress.cpp"
+#include "util.h"
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <string.h>
 
-#define MAX_BUFFER 1024
+#define WRITE_BUFFER 1024
 
 int main(){
-    Socket *serv_sock = new Socket();
-    InetAddress *serv_addr = new InetAddress("127.0.0.1", 8888);
-    
-    serv_sock->connect(serv_addr);
-    
+    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    errif(sockfd == -1, "socket create error!");
+
+    sockaddr_in serv_addr;
+    bzero(&serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    serv_addr.sin_port = htons(8888);
+
+    connect(sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr));
+
     while(true){
-        char buf[MAX_BUFFER];
-        bzero(&buf, sizeof(buf));
-        
+        char buf[WRITE_BUFFER];
+        bzero(buf, sizeof(buf));
         scanf("%s", buf);
-        ssize_t write_bytes = write(serv_sock->getFd(), buf, sizeof(buf));
+        ssize_t write_bytes = write(sockfd, buf, sizeof(buf));
         if(write_bytes == -1){
-            printf("socket already disconnected!\n");
-            break;
+            printf("client fd: %dwrite error!\n", sockfd);
         }
-        ssize_t read_bytes = read(serv_sock->getFd(), buf, sizeof(buf));
+        bzero(buf, sizeof(buf));
+        ssize_t read_bytes = read(sockfd, buf, sizeof(buf));
         if(read_bytes > 0){
-            printf("message from server:%s\n", buf);
-        }else if(read_bytes == 0){
-            printf("socket already disconneted!\n");
+            printf("message from server : %s\n", buf);
+        } else if(read_bytes == 0){
+            printf("server already disconnected!\n");
             break;
-        }else if(read_bytes == -1){
+        } else if(read_bytes == -1){
             printf("socket read error!\n");
-            close(serv_sock->getFd());
             break;
         }
     }
-    close(serv_sock->getFd());
+    close(sockfd);
     return 0;
 }

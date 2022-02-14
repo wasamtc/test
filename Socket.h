@@ -1,21 +1,19 @@
-#pragma once // 这个保证每个头文件只编译一次
+#pragma once
 
 class InetAddress;
-class Socket
-{
+
+class Socket{
     private:
         int fd;
     public:
         Socket();
-        Socket(int);
+        Socket(int _fd);
         ~Socket();
-        
-        void bind(InetAddress*);
+        void bind(InetAddress* serv_addr);
         void listen();
         void setnonblocking();
-        void connect(InetAddress*);
-        
-        int accept(InetAddress*);
-        
+
+        int accept(InetAddress* clnt_addr);
+
         int getFd();
 };

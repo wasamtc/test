@@ -1,10 +1,10 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "util.h"
+#include <stdlib.h>
 
-void errif(bool condition, const char*errmsg){
+void errif(bool condition, const char* message){
     if(condition){
-        perror(errmsg);
+        perror(message);
         exit(EXIT_FAILURE);
     }
 }
